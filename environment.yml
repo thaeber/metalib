@@ -1,0 +1,7 @@
+name: metalib
+channels:
+  - defaults
+dependencies:
+  - python
+  - pip
+  - poetry
