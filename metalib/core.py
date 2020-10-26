@@ -1,31 +1,35 @@
 from pathlib import Path
-from typing import Any, Dict, List, Callable, Iterator, Union, Iterable
+from typing import Any, Dict, List, Callable, Iterator, Mapping, Sequence, Union, Iterable
+import collections.abc
 
 import yaml
 
 
 class MetadataNode():
-    def __init__(self, parent: "MetadataNode"):
+    def __init__(self, parent: Union[None, "MetadataNode"]):
 
         self.parent = parent
         if parent is not None:
             self.level = parent.level + 1
         else:
             self.level = 0
-        # print(f'Level: {self.level}')
 
     def _transform_value(self, value: Any):
-        if isinstance(value, (MetadataDictNode, MetadataListNode)):
+        if isinstance(value, MetadataNode):
             # the value is already a metadata node
             return value
-        if isinstance(value, dict):
-            # print(f'dict: {value}')
+        if isinstance(value, str):
+            # plain string, just return to avoid recursion
+            # because str is also a Sequence type
+            return value
+        if isinstance(value, collections.abc.Mapping):
+            # the value is a key:value mapping
             return MetadataDictNode(self, value)
-        elif isinstance(value, list):
-            # print(f'list: {value}')
+        elif isinstance(value, collections.abc.Sequence):
+            # the value is an indexable sequence
             return MetadataListNode(self, value)
         else:
-            # print(value)
+            # scalar type or unknown type
             return value
 
     def get_child_nodes(self) -> Iterator["MetadataNode"]:
@@ -64,7 +68,7 @@ class MetadataNode():
 
 
 class MetadataDictNode(MetadataNode, dict):
-    def __init__(self, parent: MetadataNode, values: Dict):
+    def __init__(self, parent: MetadataNode, values: Mapping):
 
         MetadataNode.__init__(self, parent)
 
@@ -97,7 +101,7 @@ class MetadataDictNode(MetadataNode, dict):
 
 
 class MetadataListNode(MetadataNode, list):
-    def __init__(self, parent: MetadataNode, values: Union[List, Iterable]):
+    def __init__(self, parent: MetadataNode, values: Sequence):
         MetadataNode.__init__(self, parent)
 
         # loop over values and replace dict and list objects

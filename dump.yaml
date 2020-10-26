@@ -1,33 +1,15 @@
-date: 2020-08-21
-system: PIV1
-title: characterization of nozzle exit flow
-notes: nozzle exit is at the lower edge of the image.
-
-# setup configuration
-setup: Axisymmetric Impinging Jet
-setup_akronym: AIJ
-wall_distance: 50  # [mm] distance between nozzle and wall
-wall: 300x700
-
-# nozzle positioning stage
-stage_position: {x: 4850, y: -637, z1: 32663, z2: 14731}
-stage_log_file: None
-
-# coordinate system
-# Note: x0 and y0 are the coordinates of the referece point in image coordinates
-coord_reference_point: center of nozzle exit
-x0: -0.44   # [mm] nozzle center
-y0: 0.0   # [mm] nozzle exit plane
-
-# PIV settings
-piv_region: 16x16
-piv_overlap: 75%
-piv_passes: 1
-
-# Datensätze
-tecplot_files: ExportTecPlotDat/*.dat    # glob pattern of files; relative to dataset
-datasets:
-- {Re: 5000, Vdot: 84.1, piv_dt: 70, source: raw/Davis/2020-08-21/2020-08-21-PIV1-D01/PIV_MPd(1x16x16_75%ov)}
-- {Re: 10000, Vdot: 168.3, piv_dt: 35, source: raw/Davis/2020-08-21/2020-08-21-PIV1-D02/PIV_MPd(1x16x16_75%ov)}
-- {Re: 15000, Vdot: 252.4, piv_dt: 28, source: raw/Davis/2020-08-21/2020-08-21-PIV1-D03/PIV_MPd(1x16x16_75%ov)}
-- {Re: 20000, Vdot: 336.5, piv_dt: 18, source: raw/Davis/2020-08-21/2020-08-21-PIV1-D04/PIV_MPd(1x16x16_75%ov)}
+name: a
+params:
+- p1: '1'
+  p2: 2
+  p3:
+  - 1
+  - 2
+  - 3
+  - 4
+- p1: '3'
+  p2: 4
+  p3:
+    subp1: 1
+    subp2: x
+value: 2.4

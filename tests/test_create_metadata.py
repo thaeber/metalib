@@ -41,3 +41,44 @@ def test_from_yaml_includes_filepath():
 
     assert isinstance(meta._path, Path)
     assert meta._path == filename.parent
+
+
+def test_access_by_key():
+    obj = dict(name='a',
+               value=2.4,
+               params=[
+                   dict(p1='1', p2=2),
+                   dict(p1='3', p2=4),
+               ])
+    meta = metalib.from_obj(obj)
+
+    # check access
+    assert meta["name"] == 'a'
+    assert meta["params"][1]['p2'] == 4
+
+
+def test_access_by_property():
+    obj = dict(name='a',
+               value=2.4,
+               params=[
+                   dict(p1='1', p2=2),
+                   dict(p1='3', p2=4),
+               ])
+    meta = metalib.from_obj(obj)
+
+    # check access
+    assert meta.name == 'a'
+    assert meta.params[1].p2 == 4
+
+
+def test_inheritance_of_properties():
+    obj = dict(name='a',
+               value=2.4,
+               params=[
+                   dict(p1='1', p2=2),
+                   dict(p1='3', p2=4),
+               ])
+    meta = metalib.from_obj(obj)
+
+    # check access
+    assert meta.params[1].name == 'a'
