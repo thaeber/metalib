@@ -1,4 +1,7 @@
+from pathlib import Path
 from typing import Any, Dict, List, Callable, Iterator, Union, Iterable
+
+import yaml
 
 
 class MetadataNode():
@@ -115,3 +118,37 @@ class MetadataListNode(MetadataNode, list):
         for value in self:
             if isinstance(value, MetadataNode):
                 yield value
+
+
+def from_obj(obj: Union[dict, list, Iterable]) -> MetadataNode:
+    """
+    Encapsulates a dictionary, list or iterable in a metadata structure.
+
+    Args:
+        
+    - `obj (dict, list, Iterable)`: The object that will be encapsulated.
+
+    Raises:
+    
+    - `ValueError`: The parameter 'obj' is not of the correct type.
+
+    Returns:
+        
+    `MetadataNode`: The metadata structure with information from the specified parameter `obj`.
+
+    """
+    if isinstance(obj, dict):
+        return MetadataDictNode(None, obj)
+    elif isinstance(obj, (list, Iterable)):
+        return MetadataListNode(None, obj)
+    else:
+        raise ValueError('"obj" must be of type list or dict.')
+
+
+def concat(
+        metadata_or_list: Union[MetadataNode,
+                                List[MetadataNode]]) -> MetadataNode:
+    if isinstance(metadata_or_list, MetadataNode):
+        return metadata_or_list
+    else:
+        return MetadataListNode(None, metadata_or_list)
