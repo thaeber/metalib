@@ -1,8 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from pathlib import Path
 from typing import Any, List, Callable, Iterator, MutableMapping, MutableSequence, Union, Iterable, overload
 import collections.abc
-from toolz import curry
 
 
 class MetadataNode(metaclass=ABCMeta):
@@ -47,11 +45,10 @@ class MetadataNode(metaclass=ABCMeta):
             raise AttributeError(name)
 
     @abstractmethod
-    def _iter_nodes_(self) -> Iterator["MetadataNode"]:
+    def _iter_nodes_(self) -> Iterator["MetadataCollectionNode"]:
         pass
 
     def has_param(self, param_name: str) -> bool:
-        raise NotImplementedError()
         try:
             _ = self.__getattr__(param_name)
             return True
@@ -59,7 +56,6 @@ class MetadataNode(metaclass=ABCMeta):
             return False
 
     def get_param(self, param_name: Union[str, List[str]]) -> Any:
-        raise NotImplementedError()
         if isinstance(param_name, str):
             return self.__getattr__(param_name)
         elif isinstance(param_name, list):
@@ -71,8 +67,7 @@ class MetadataNode(metaclass=ABCMeta):
         self,
         predicate: Callable[["MetadataNode"], bool],
     ) -> Iterator[Any]:
-        raise NotImplementedError()
-        for child in self.get_child_nodes():
+        for child in self._iter_nodes_():
             # check children of child node
             yield from child.query(predicate)
 
@@ -93,7 +88,7 @@ class MetadataScalarNode(MetadataNode):
         # store getter/setter
         self._value = value
 
-    def _iter_nodes_(self) -> Iterator["MetadataNode"]:
+    def _iter_nodes_(self) -> Iterator["MetadataCollectionNode"]:
         yield from []
 
     def __repr__(self) -> str:
@@ -103,10 +98,6 @@ class MetadataScalarNode(MetadataNode):
 class MetadataCollectionNode(MetadataNode):
     def __init__(self, parent: Union[MetadataNode, None]):
         super().__init__(parent)
-
-    # @abstractmethod
-    # def get_child_nodes(self) -> Iterator["MetadataNode"]:
-    #     pass
 
 
 class MetadataMutableMappingNode(MetadataCollectionNode,
@@ -160,14 +151,13 @@ class MetadataMutableMappingNode(MetadataCollectionNode,
             # call super class
             return super().__getattr__(name)
 
-    def _iter_nodes_(self) -> Iterator["MetadataNode"]:
-        # for value in self.values():
-        #     if isinstance(value, MetadataNode):
-        #         yield value
-        raise NotImplementedError()
+    def _iter_nodes_(self) -> Iterator["MetadataCollectionNode"]:
+        for value in self._child_nodes.values():
+            if isinstance(value, MetadataCollectionNode):
+                yield value
 
 
-class MetadataMutableSequenceNode(MetadataNode,
+class MetadataMutableSequenceNode(MetadataCollectionNode,
                                   collections.abc.MutableSequence):
     def __init__(
         self,
@@ -232,11 +222,10 @@ class MetadataMutableSequenceNode(MetadataNode,
         self._child_nodes.insert(index,
                                  MetadataNode._transform_value(self, value))
 
-    def _iter_nodes_(self) -> Iterator["MetadataNode"]:
-        raise NotImplementedError()
-        # for value in self:
-        #     if isinstance(value, MetadataNode):
-        #         yield value
+    def _iter_nodes_(self) -> Iterator["MetadataCollectionNode"]:
+        for value in self:
+            if isinstance(value, MetadataCollectionNode):
+                yield value
 
 
 def from_obj(obj: Union[MutableMapping, MutableSequence]) -> MetadataNode:

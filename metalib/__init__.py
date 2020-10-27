@@ -1,16 +1,10 @@
 __version__ = '0.1.0'
 
-#%%
-from pathlib import Path
 from typing import List, Union, Iterable
 
-import yaml
-from toolz import pipe, curry
 from pandas import DataFrame
 from .core import *
 from ._yaml import from_yaml, to_yaml
-
-#%%
 
 
 def to_dataframe(datasets: List[MetadataNode],
