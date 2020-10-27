@@ -14,14 +14,8 @@ class MetadataNode(metaclass=ABCMeta):
             self._level = parent._level + 1
 
     @staticmethod
-    def _transform_value(
-        parent: Union["MetadataNode", None],
-        getter: Callable,
-        setter: Callable[[Any], None],
-    ) -> "MetadataNode":
-
-        # get value for type checking
-        value = getter()
+    def _transform_value(parent: Union["MetadataNode", None],
+                         value: Any) -> "MetadataNode":
 
         # wrap getter/setter in a metadata node instance
         if isinstance(value, MetadataNode):
@@ -30,7 +24,7 @@ class MetadataNode(metaclass=ABCMeta):
         if isinstance(value, str):
             # specifically check for string to avoid
             # recursion because str is also a Sequence type
-            return MetadataScalarNode(parent, getter, setter)
+            return MetadataScalarNode(parent, value)
         if isinstance(value, collections.abc.MutableMapping):
             # the value is a key:value mapping
             return MetadataMutableMappingNode(parent, value)
@@ -39,7 +33,7 @@ class MetadataNode(metaclass=ABCMeta):
             return MetadataMutableSequenceNode(parent, value)
         else:
             # scalar type or unknown type
-            return MetadataScalarNode(parent, getter, setter)
+            return MetadataScalarNode(parent, value)
 
     def __getattr__(self, name: str) -> Any:
         if name in self.__dict__:
@@ -91,33 +85,32 @@ class MetadataNode(metaclass=ABCMeta):
 
 
 class MetadataScalarNode(MetadataNode):
-    def __init__(self, parent: Union[MetadataNode, None], getter: Callable,
-                 setter: Callable[[Any], None]):
+    def __init__(self, parent: Union[MetadataNode, None], value: Any):
 
         # call super class
         super().__init__(parent)
 
         # store getter/setter
-        self.get_node_value = getter
-        self.set_node_value = setter
+        self._value = value
 
     def _iter_nodes_(self) -> Iterator["MetadataNode"]:
         yield from []
 
     def __repr__(self) -> str:
-        return f'scalar: {self.get_node_value()}'
+        return f'scalar: {self._value}'
 
 
 class MetadataCollectionNode(MetadataNode):
     def __init__(self, parent: Union[MetadataNode, None]):
         super().__init__(parent)
 
-    @abstractmethod
-    def get_child_nodes(self) -> Iterator["MetadataNode"]:
-        pass
+    # @abstractmethod
+    # def get_child_nodes(self) -> Iterator["MetadataNode"]:
+    #     pass
 
 
-class MetadataMutableMappingNode(MetadataNode, collections.abc.MutableMapping):
+class MetadataMutableMappingNode(MetadataCollectionNode,
+                                 collections.abc.MutableMapping):
     def __init__(
         self,
         parent: Union[MetadataNode, None],
@@ -132,29 +125,22 @@ class MetadataMutableMappingNode(MetadataNode, collections.abc.MutableMapping):
 
         # loop over values and build metadata node tree
         self._child_nodes = {
-            key: self._make_child_node(key)
-            for key in mapping
+            key: MetadataNode._transform_value(self, value)
+            for key, value in mapping.items()
         }
-
-    def _make_child_node(self, key):
-        return MetadataNode._transform_value(
-            self,
-            curry(self._ref.__getitem__, key),
-            curry(self._ref.__setitem__, key),
-        )
 
     def __getitem__(self, key: Any) -> Any:
         node = self._child_nodes[key]
         if isinstance(node, MetadataScalarNode):
             # directly return scalar value
-            return node.get_node_value()
+            return node._value
         else:
             # return collection nodes
             return node
 
     def __setitem__(self, key: Any, value: Any) -> None:
         self._ref[key] = value
-        self._child_nodes[key] = self._make_child_node(key)
+        self._child_nodes[key] = MetadataNode._transform_value(self, value)
 
     def __iter__(self) -> Iterator[Any]:
         return self._child_nodes.__iter__()
@@ -196,15 +182,8 @@ class MetadataMutableSequenceNode(MetadataNode,
 
         # loop over values and build metadata node tree
         self._child_nodes = [
-            self._make_child_node(index) for index in range(len(sequence))
+            MetadataNode._transform_value(self, value) for value in sequence
         ]
-
-    def _make_child_node(self, index: int):
-        return MetadataNode._transform_value(
-            self,
-            curry(self._ref.__getitem__, index),
-            curry(self._ref.__setitem__, index),
-        )
 
     def __getitem__(self, index: Union[int, slice]) -> Any:
         if isinstance(index, slice):
@@ -212,7 +191,7 @@ class MetadataMutableSequenceNode(MetadataNode,
         elif isinstance(index, int):
             node = self._child_nodes[index]
             if isinstance(node, MetadataScalarNode):
-                return node.get_node_value()
+                return node._value
             else:
                 return node
         else:
@@ -227,7 +206,8 @@ class MetadataMutableSequenceNode(MetadataNode,
             raise NotImplementedError('Slicing ist not supported')
         elif isinstance(index, int):
             self._ref[index] = value
-            self._child_nodes[index] = self._make_child_node(index)
+            self._child_nodes[index] = MetadataNode._transform_value(
+                self, value)
         else:
             raise TypeError('"index" must be of type "int" or "slice".')
 
@@ -249,7 +229,8 @@ class MetadataMutableSequenceNode(MetadataNode,
 
     def insert(self, index: int, value: Any) -> None:
         self._ref.insert(index, value)
-        self._child_nodes.insert(index, self._make_child_node(index))
+        self._child_nodes.insert(index,
+                                 MetadataNode._transform_value(self, value))
 
     def _iter_nodes_(self) -> Iterator["MetadataNode"]:
         raise NotImplementedError()

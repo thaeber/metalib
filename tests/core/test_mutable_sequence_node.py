@@ -100,7 +100,7 @@ def test_delete_node():
     assert len(node) == 3
     assert node[0] == 1
     assert node[1] == 3
-    assert isinstance(node[3], MetadataMutableSequenceNode)
+    assert isinstance(node[2], MetadataMutableSequenceNode)
 
     # check item has been deleted in original mapping
     assert len(sequence) == 3
