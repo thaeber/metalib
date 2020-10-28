@@ -24,4 +24,4 @@ def test_getter():
         value = x
 
     node = MetadataScalarNode(None, value)
-    assert node._value == 'abc'
+    assert node._ref == 'abc'

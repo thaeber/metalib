@@ -7,7 +7,8 @@ class MetadataNode(metaclass=ABCMeta):
     def __init__(self, parent: Union[None, "MetadataNode"]):
 
         self._parent = parent
-        self._level = 0
+        self._level: int = 0
+        self._ref: Any = None
         if parent is not None:
             self._level = parent._level + 1
 
@@ -48,6 +49,10 @@ class MetadataNode(metaclass=ABCMeta):
     def _iter_nodes_(self) -> Iterator["MetadataCollectionNode"]:
         pass
 
+    @abstractmethod
+    def __getitem__(self, index: Any) -> Any:
+        pass
+
     def has_param(self, param_name: str) -> bool:
         try:
             _ = self.__getattr__(param_name)
@@ -86,13 +91,16 @@ class MetadataScalarNode(MetadataNode):
         super().__init__(parent)
 
         # store getter/setter
-        self._value = value
+        self._ref = value
+
+    def __getitem__(self, index: Union[int, str]) -> Any:
+        return self._ref
 
     def _iter_nodes_(self) -> Iterator["MetadataCollectionNode"]:
         yield from []
 
     def __repr__(self) -> str:
-        return f'scalar: {self._value}'
+        return repr(self._ref)
 
 
 class MetadataCollectionNode(MetadataNode):
@@ -120,11 +128,24 @@ class MetadataMutableMappingNode(MetadataCollectionNode,
             for key, value in mapping.items()
         }
 
+    def __repr__(self) -> str:
+        lines = []
+        for key, value in self.items():
+            s = f'{key}: {repr(value)}'
+            lines.append(s)
+
+        # total length
+        total_length = sum(len(s) for s in lines)
+        if total_length < 80:
+            return f'{{ {", ".join(lines)} }}'
+        else:
+            return '\n'.join(f'{self._level * "  "}{s}' for s in lines)
+
     def __getitem__(self, key: Any) -> Any:
         node = self._child_nodes[key]
         if isinstance(node, MetadataScalarNode):
             # directly return scalar value
-            return node._value
+            return node._ref
         else:
             # return collection nodes
             return node
@@ -175,13 +196,26 @@ class MetadataMutableSequenceNode(MetadataCollectionNode,
             MetadataNode._transform_value(self, value) for value in sequence
         ]
 
+    def __repr__(self) -> str:
+        lines = []
+        for value in self:
+            s = f'{repr(value)}'
+            lines.append(s)
+
+        # total length
+        total_length = sum(len(s) for s in lines)
+        if total_length < 80:
+            return f'[ {", ".join(lines)} ]'
+        else:
+            return '\n'.join(f'- {s}' for s in lines)
+
     def __getitem__(self, index: Union[int, slice]) -> Any:
         if isinstance(index, slice):
             raise NotImplementedError('Slicing ist not supported')
         elif isinstance(index, int):
             node = self._child_nodes[index]
             if isinstance(node, MetadataScalarNode):
-                return node._value
+                return node._ref
             else:
                 return node
         else:
