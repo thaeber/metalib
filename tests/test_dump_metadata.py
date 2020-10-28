@@ -20,6 +20,18 @@ def test_dumped_history(tmp_path: Path):
     assert dumped['$history'][-1]['$git-commit'] == _get_git_commit_hash()
 
 
+def test_dumped_origin(tmp_path: Path):
+    # create and dump metadata
+    meta = metalib.from_yaml(Path(__file__).parent / 'data/test.yaml')
+    meta.to_yaml(tmp_path / 'dump.yaml')
+
+    # load metadata and check history
+    dumped = metalib.from_yaml(tmp_path / 'dump.yaml')
+    assert dumped['$history'][-1]['$script'] == 'test_dump_metadata.py'
+    assert dumped['$history'][-1]['$git-commit'] == _get_git_commit_hash()
+    assert dumped['$history'][-1]['$origin'] == 'test.yaml'
+
+
 def test_dump_metadata(tmp_path: Path):
 
     # create metadata

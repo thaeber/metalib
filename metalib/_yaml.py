@@ -70,7 +70,7 @@ def _get_git_commit_hash() -> Union[str, None]:
         return None
 
 
-def _append_history(node: MetadataNode):
+def _append_history(origin: Union[Path, str], node: MetadataNode):
     if not isinstance(node, MetadataMutableMappingNode):
         return node
 
@@ -82,6 +82,8 @@ def _append_history(node: MetadataNode):
         '$script': _get_caller_filepath().name,
         '$git-commit': _get_git_commit_hash()
     }
+    if origin:
+        entry['$origin'] = str(origin)
     node['$history'].append(entry)
 
     return node
@@ -104,6 +106,10 @@ def _memory_roundtrip(yaml: YAML, node: MetadataNode):
 def to_yaml(filename: Union[str, Path], metadata: MetadataNode):
 
     filename = Path(filename)
+    try:
+        origin = metadata._filename
+    except AttributeError:
+        origin = None
 
     # obtain YAML serializer instance
     try:
@@ -122,7 +128,7 @@ def to_yaml(filename: Union[str, Path], metadata: MetadataNode):
         # clone metadata in memory
         curry(_memory_roundtrip, yaml),
         # add history only to clone to avoid modifying the original metadata
-        _append_history,
+        curry(_append_history, origin),
         # dump metadata to file
         lambda meta: yaml.dump(meta._ref, filename),
     )
