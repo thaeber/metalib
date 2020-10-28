@@ -1,21 +1,16 @@
 __version__ = '0.1.0'
 
-#%%
-from pathlib import Path
 from typing import List, Union, Iterable
 
-import yaml
-from toolz import pipe, curry
 from pandas import DataFrame
-from .core import MetadataNode, MetadataListNode, MetadataDictNode, from_obj, concat
+from .core import *
 from ._yaml import from_yaml, to_yaml
-
-#%%
 
 
 def to_dataframe(datasets: List[MetadataNode],
                  include_keys: Union[str, Iterable[str]] = None,
                  exclude_keys: Union[str, Iterable[str]] = None) -> DataFrame:
+    raise NotImplementedError()
     # get common parameter keys
     keys = set()
     for ds in datasets:
@@ -33,6 +28,6 @@ def to_dataframe(datasets: List[MetadataNode],
         keys.difference_update(exclude_keys)
     keys = list(keys)
 
-    data = [ds.get(keys) for ds in datasets]
+    data = [ds.get_param(keys) for ds in datasets]
     df = DataFrame(data, columns=keys)
     return df

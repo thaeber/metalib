@@ -2,6 +2,7 @@ from pathlib import Path
 from toolz import pipe, curry
 
 from .core import *
+import yaml
 
 
 @curry
@@ -12,17 +13,19 @@ def _add_metadata_filename(filename: Path, node: MetadataNode):
 
 
 def _metadata_dict_node_representer(dumper: yaml.Dumper,
-                                    data: MetadataDictNode):
+                                    data: MetadataMutableMappingNode):
     return dumper.represent_mapping(u'tag:yaml.org,2002:map', data)
 
 
 def _metadata_list_node_representer(dumper: yaml.Dumper,
-                                    data: MetadataListNode):
+                                    data: MetadataMutableSequenceNode):
     return dumper.represent_sequence(u'tag:yaml.org,2002:seq', data)
 
 
-yaml.add_representer(MetadataDictNode, _metadata_dict_node_representer)
-yaml.add_representer(MetadataListNode, _metadata_list_node_representer)
+yaml.add_representer(MetadataMutableMappingNode,
+                     _metadata_dict_node_representer)
+yaml.add_representer(MetadataMutableSequenceNode,
+                     _metadata_list_node_representer)
 
 
 def from_yaml(filename: Union[str, Path]) -> MetadataNode:
