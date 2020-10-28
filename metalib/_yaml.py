@@ -115,13 +115,9 @@ def to_yaml(filename: Union[str, Path], metadata: MetadataNode):
     try:
         yaml = metadata._yaml_serializer
     except Exception as e:
-        print(e)
         yaml = None
     if (yaml is None) or not isinstance(yaml, YAML):
-        print('create new yaml serializer')
         yaml = _create_yaml_serializer()
-    else:
-        print('resusing yaml serializer')
 
     pipe(
         metadata,
