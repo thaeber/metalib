@@ -6,7 +6,6 @@ import metalib
 from metalib import MetadataMutableMappingNode
 from metalib._yaml import _get_git_commit_hash
 import pytest
-import warnings
 
 
 def test_dumped_history(tmp_path: Path):
@@ -30,6 +29,21 @@ def test_dumped_origin(tmp_path: Path):
     assert dumped['$history'][-1]['$script'] == 'test_dump_metadata.py'
     assert dumped['$history'][-1]['$git-commit'] == _get_git_commit_hash()
     assert dumped['$history'][-1]['$origin'] == 'test.yaml'
+
+
+def test_dump_description(tmp_path: Path):
+    # create and dump metadata
+    meta = metalib.from_obj(dict(name='Test'))
+    metalib.to_yaml(tmp_path / 'dump.yaml',
+                    meta,
+                    description=['Step A', 'Step B'])
+
+    # load metadata and check history
+    dumped = metalib.from_yaml(tmp_path / 'dump.yaml')
+    assert '$description' in dumped['$history'][-1]
+    assert len(dumped['$history'][-1]['$description']) == 2
+    assert dumped['$history'][-1]['$description'][0] == 'Step A'
+    assert dumped['$history'][-1]['$description'][1] == 'Step B'
 
 
 def test_dump_metadata(tmp_path: Path):
