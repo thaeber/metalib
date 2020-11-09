@@ -138,3 +138,37 @@ def test_check_if_key_is_in_node():
     node = MetadataMutableMappingNode(None, mapping)
 
     assert 'b' in mapping
+
+
+def test_key_iteration():
+    mapping = dict(a='a', b='b', c=[7, 8, 9], d=dict(a='nested value'), e=12.0)
+    node = MetadataMutableMappingNode(None, mapping)
+
+    # replace
+    lst = [node[key] for key in node]
+    assert isinstance(lst[0], str)
+    assert isinstance(lst[1], str)
+    assert isinstance(lst[2], MetadataMutableSequenceNode)
+    assert isinstance(lst[3], MetadataMutableMappingNode)
+    assert isinstance(lst[4], float)
+
+    assert lst[0] == 'a'
+    assert lst[1] == 'b'
+    assert lst[4] == 12.0
+
+
+def test_value_iteration():
+    mapping = dict(a='a', b='b', c=[7, 8, 9], d=dict(a='nested value'), e=12.0)
+    node = MetadataMutableMappingNode(None, mapping)
+
+    # replace
+    lst = [value for value in node.values()]
+    assert isinstance(lst[0], str)
+    assert isinstance(lst[1], str)
+    assert isinstance(lst[2], MetadataMutableSequenceNode)
+    assert isinstance(lst[3], MetadataMutableMappingNode)
+    assert isinstance(lst[4], float)
+
+    assert lst[0] == 'a'
+    assert lst[1] == 'b'
+    assert lst[4] == 12.0

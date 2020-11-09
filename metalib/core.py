@@ -253,7 +253,11 @@ class MetadataMutableSequenceNode(MetadataCollectionNode,
             raise TypeError('"index" must be of type "int" or "slice".')
 
     def __iter__(self) -> Iterator[Any]:
-        return self._child_nodes.__iter__()
+        for node in self._child_nodes.__iter__():
+            if isinstance(node, MetadataScalarNode):
+                yield node._ref
+            else:
+                yield node
 
     def __len__(self) -> int:
         return len(self._child_nodes)

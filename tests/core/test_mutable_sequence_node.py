@@ -131,3 +131,19 @@ def test_access_scalar_with_dot_notation():
 
     # inheritance
     assert node.b.a == 'test'
+
+
+def test_iteration():
+    sequence = ['a', 'b', [7, 8, 9], dict(a='nested value'), 12.0]
+    node = MetadataMutableSequenceNode(None, sequence)
+
+    # replace
+    lst = [value for value in node]
+    assert isinstance(lst[0], str)
+    assert isinstance(lst[1], str)
+    assert isinstance(lst[2], MetadataMutableSequenceNode)
+    assert isinstance(lst[3], MetadataMutableMappingNode)
+    assert isinstance(lst[4], float)
+
+    assert lst[0] == 'a'
+    assert lst[1] == 'b'
