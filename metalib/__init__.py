@@ -1,4 +1,4 @@
-__version__ = '0.2.1-dev3'
+__version__ = '0.2.1-dev4'
 
 from typing import List, Union, Iterable
 
