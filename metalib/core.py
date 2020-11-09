@@ -83,6 +83,12 @@ class MetadataNode(metaclass=ABCMeta):
             except AttributeError:
                 pass
 
+    def first(self, predicate: Callable[["MetadataNode"], bool]):
+        try:
+            return next(self.query(predicate))
+        except StopIteration:
+            raise RuntimeError('No metadata matches the given predicate.')
+
 
 class MetadataScalarNode(MetadataNode):
     def __init__(self, parent: Union[MetadataNode, None], value: Any):
