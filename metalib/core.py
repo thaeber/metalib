@@ -83,7 +83,8 @@ class MetadataNode(metaclass=ABCMeta):
             except AttributeError:
                 pass
 
-    def first(self, predicate: Callable[["MetadataNode"], bool]):
+    def first(self, predicate: Callable[["MetadataNode"],
+                                        bool]) -> "MetadataNode":
         try:
             return next(self.query(predicate))
         except StopIteration:
