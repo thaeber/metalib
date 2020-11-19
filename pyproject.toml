@@ -5,7 +5,7 @@ description = ""
 authors = ["thaeber"]
 
 [tool.poetry.dependencies]
-python = ">=3.7"
+python = ">=3.6.1"
 pandas = "^1.1.3"
 toolz = "^0.11.1"
 "ruamel.yaml" = "^0.16.12"
