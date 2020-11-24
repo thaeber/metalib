@@ -1,6 +1,8 @@
-from abc import ABCMeta, abstractmethod
-from typing import Any, List, Callable, Iterator, MutableMapping, MutableSequence, Union, Iterable, overload
 import collections.abc
+import numbers
+from abc import ABCMeta, abstractmethod
+from typing import (Any, Callable, Iterable, Iterator, List, MutableMapping,
+                    MutableSequence, Union, overload)
 
 
 class MetadataNode(metaclass=ABCMeta):
@@ -219,7 +221,7 @@ class MetadataMutableSequenceNode(MetadataCollectionNode,
     def __getitem__(self, index: Union[int, slice]) -> Any:
         if isinstance(index, slice):
             raise NotImplementedError('Slicing ist not supported')
-        elif isinstance(index, int):
+        elif isinstance(index, numbers.Integral):
             node = self._child_nodes[index]
             if isinstance(node, MetadataScalarNode):
                 return node._ref
@@ -235,7 +237,7 @@ class MetadataMutableSequenceNode(MetadataCollectionNode,
     ) -> None:
         if isinstance(index, slice):
             raise NotImplementedError('Slicing ist not supported')
-        elif isinstance(index, int):
+        elif isinstance(index, numbers.Integral):
             self._ref[index] = value
             self._child_nodes[index] = MetadataNode._transform_value(
                 self, value)
@@ -245,7 +247,7 @@ class MetadataMutableSequenceNode(MetadataCollectionNode,
     def __delitem__(self, index: Union[int, slice]) -> None:
         if isinstance(index, slice):
             raise NotImplementedError('Slicing ist not supported')
-        elif isinstance(index, int):
+        elif isinstance(index, numbers.Integral):
             del self._ref[index]
             del self._child_nodes[index]
             print('Test')

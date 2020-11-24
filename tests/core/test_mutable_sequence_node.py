@@ -1,5 +1,6 @@
+import numpy as np
 import pytest
-from metalib import MetadataMutableSequenceNode, MetadataMutableMappingNode
+from metalib import MetadataMutableMappingNode, MetadataMutableSequenceNode
 
 
 def test_parent_is_None():
@@ -30,6 +31,17 @@ def test_access_scalar_with_index():
     node[1] = 4
     assert sequence[0] == 'passed'
     assert sequence[1] == 4
+
+
+def test_index_type():
+    sequence = ['test', 2]
+    node = MetadataMutableSequenceNode(None, sequence)
+
+    # index with python integer
+    assert node[0] == 'test'
+
+    # index with numpy.int32
+    assert node[np.int32(0)] == 'test'
 
 
 def test_access_collection_node_with_index():
