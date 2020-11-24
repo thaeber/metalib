@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metalib"
-version = "0.2.2-dev0"
+version = "0.2.2"
 description = ""
 authors = ["thaeber"]
 
