@@ -1,4 +1,4 @@
-![Python build and test](https://github.com/thaeber/metalib/workflows/Python%20build%20and%20test/badge.svg?branch=main)
+[![Python build and test](https://github.com/thaeber/metalib/actions/workflows/python-package-with-poetry.yml/badge.svg)](https://github.com/thaeber/metalib/actions/workflows/python-package-with-poetry.yml)
 
 # metalib
 A python package to manage the metadata of scientific datasets.
